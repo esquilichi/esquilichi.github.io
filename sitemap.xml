@@ -16,7 +16,11 @@
   </url><url>
     <loc>https://esquilichi.github.io/categories/</loc>
   </url><url>
+    <loc>https://esquilichi.github.io/tags/cobaltstrike/</loc>
+  </url><url>
     <loc>https://esquilichi.github.io/tags/crto/</loc>
+  </url><url>
+    <loc>https://esquilichi.github.io/tags/persistance/</loc>
   </url><url>
     <loc>https://esquilichi.github.io/post/</loc>
   </url><url>
@@ -29,5 +33,7 @@
     <loc>https://esquilichi.github.io/tags/</loc>
   </url><url>
     <loc>https://esquilichi.github.io/categories/windows/</loc>
+  </url><url>
+    <loc>https://esquilichi.github.io/p/windows-host-persistance-userland/</loc>
   </url>
 </urlset>
