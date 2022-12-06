@@ -290,6 +290,39 @@ The AutoRun settings can be found in the registry keys HKCU and HKLM.&lt;/p&gt;
 &lt;li&gt;&lt;code&gt;-v&lt;/code&gt; is the name of the registry key to create.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;When the victim machine reboots &lt;code&gt;C:\ProgramData\malicious.exe&lt;/code&gt; will be executed, granting persistence.&lt;/p&gt;
+&lt;h2 id=&#34;com-hijacking&#34;&gt;COM Hijacking&lt;/h2&gt;
+&lt;h3 id=&#34;theory&#34;&gt;Theory&lt;/h3&gt;
+&lt;p&gt;The Microsoft Component Object Model (COM) is an interface standard that allows the software components to interact and communicate with each other’s code without knowledge of their internal implementation.&lt;/p&gt;
+&lt;p&gt;The COM server is a COM object that provides functionality to COM client programs. COM clients access COM objects using the COM server, which can be hosted in either a DLL (called an in-process server) or an EXE (called an out-of-process server). This architecture is called client/server.&lt;/p&gt;
+&lt;p&gt;COM is the foundation technology for Microsoft&amp;rsquo;s OLE (compound documents), ActiveX (Internet-enabled components), as well as others.&lt;/p&gt;
+&lt;h3 id=&#34;exploitation&#34;&gt;Exploitation&lt;/h3&gt;
+&lt;p&gt;The technique is to find keys that are &amp;ldquo;abandoned&amp;rdquo;. Is not a good practice to hijack COM objects that are in-use and break applications.&lt;/p&gt;
+&lt;p&gt;We are going to hunt for this opportunities with &lt;a class=&#34;link&#34; href=&#34;https://docs.microsoft.com/en-us/sysinternals/downloads/procmon&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;Process Monitor&lt;/a&gt;.
+It&amp;rsquo;s more straight forward to hunt for hijacks on your own machine first, and then implement them on the actual target.&lt;/p&gt;
+&lt;p&gt;The filters we are going to use are the following:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;RegOpenKey&lt;/em&gt; operations.&lt;/li&gt;
+&lt;li&gt;where the Result is &lt;em&gt;NAME NOT FOUND&lt;/em&gt;.&lt;/li&gt;
+&lt;li&gt;and the Path ends with &lt;em&gt;InprocServer32&lt;/em&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;![[procmon.png]]&lt;/p&gt;
+&lt;p&gt;Once you have decided which not existent COM to impersonate execute the following commands.
+Be careful if you decide to impersonate a COM that is loaded every few seconds as that could be fatal for your persistence.&lt;/p&gt;
+&lt;p&gt;To exploit this, we can just run the following powershell commands changing the CLISD that you want to :&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-powershell&#34; data-lang=&#34;powershell&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nb&#34;&gt;New-Item&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;-Path&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;HKCU:Software\Classes\CLSID&amp;#34;&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;-Name&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;{AB8902B4-09CA-4bb6-B78D-A8F59079A8D5}&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nb&#34;&gt;New-Item&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;-Path&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;HKCU:Software\Classes\CLSID\{AB8902B4-09CA-4bb6-B78D-A8F59079A8D5}&amp;#34;&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;-Name&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;InprocServer32&amp;#34;&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;-Value&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;C:\malicious.dll&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nb&#34;&gt;New-ItemProperty&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;-Path&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;HKCU:Software\Classes\CLSID\{AB8902B4-09CA-4bb6-B78D-A8F59079A8D5}\InprocServer32&amp;#34;&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;-Name&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;ThreadingModel&amp;#34;&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;-Value&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;Both&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;Next time the COM object is loaded, you will get remote command execution&lt;/p&gt;
 </description>
         </item>
         
