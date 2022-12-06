@@ -248,8 +248,12 @@
         <div class="widget--toc">
             <nav id="TableOfContents">
   <ol>
-    <li><a href="#enumeration">Enumeration</a></li>
-    <li><a href="#exploit">exploit</a></li>
+    <li><a href="#theory">Theory</a>
+      <ol>
+        <li><a href="#enumeration">Enumeration</a></li>
+      </ol>
+    </li>
+    <li><a href="#exploit">Exploit</a></li>
   </ol>
 </nav>
         </div>
@@ -329,7 +333,7 @@
     <section class="article-content">
     
     
-    <h1 id="theory">Theory</h1>
+    <h2 id="theory">Theory</h2>
 <p>A Windows <em>service</em> is a special type of application that is usually started automatically when the computer boots.
 They are used to manage core Windows functionality such as <em>Windows Defender</em> or <em>Windows Firewall</em>.
 Many third party applications also install services to manage how they run.</p>
@@ -342,7 +346,7 @@ Many third party applications also install services to manage how they run.</p>
 <pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">sc</span><span class="p">.</span><span class="py">exe</span> <span class="n">create</span> <span class="n">NewService</span> <span class="n">binpath</span><span class="p">=</span> <span class="n">c:</span><span class="p">\</span><span class="n">windows</span><span class="p">\</span><span class="n">system32</span><span class="p">\</span><span class="n">NewServ</span><span class="p">.</span><span class="py">exe</span> <span class="n">type</span><span class="p">=</span> <span class="n">share</span> <span class="n">start</span><span class="p">=</span> <span class="n">auto</span>
 </span></span></code></pre></td></tr></table>
 </div>
-</div><h2 id="enumeration">Enumeration</h2>
+</div><h3 id="enumeration">Enumeration</h3>
 <p>To enumerate services running in a machine, we could use the following commands:</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
@@ -402,10 +406,10 @@ Many third party applications also install services to manage how they run.</p>
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sc qc &lt;service name&gt;
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl"> sc qc &lt;service name&gt;
 </span></span></code></pre></td></tr></table>
 </div>
-</div><h2 id="exploit">exploit</h2>
+</div><h2 id="exploit">Exploit</h2>
 <p>An unquoted service path is where the path to the service binary is not wrapped in quotes.
 This is a very practice, because if two conditions are met, we could privesc.</p>
 <div class="highlight"><div class="chroma">
@@ -425,7 +429,7 @@ This is a very practice, because if two conditions are met, we could privesc.</p
 </span></span><span class="line"><span class="cl"><span class="n">ALG</span>                     <span class="n">C:</span><span class="p">\</span><span class="n">Windows</span><span class="p">\</span><span class="n">System32</span><span class="p">\</span><span class="n">alg</span><span class="p">.</span><span class="py">exe</span>
 </span></span><span class="line"><span class="cl"><span class="n">AppVClient</span>              <span class="n">C:</span><span class="p">\</span><span class="n">Windows</span><span class="p">\</span><span class="n">system32</span><span class="p">\</span><span class="n">AppVClient</span><span class="p">.</span><span class="py">exe</span>
 </span></span><span class="line"><span class="cl"><span class="n">Sense</span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="s2">&#34;C:\Program Files\Windows Defender Advanced Threat Protection\MsSense.exe&#34;</span>
-</span></span><span class="line"><span class="cl"><span class="n">Vulnerable</span>    <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span><span class="n">C:</span><span class="p">\</span><span class="n">Program</span> <span class="n">Files</span><span class="p">\</span><span class="n">Vulnerable</span> <span class="n">Services</span><span class="p">\</span><span class="n">Service</span> <span class="mf">1</span><span class="p">.</span><span class="n">exe</span>
+</span></span><span class="line"><span class="cl"><span class="n">Vulnerable</span>    <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="err"> </span> <span class="n">C:</span><span class="p">\</span><span class="n">Program</span> <span class="n">Files</span><span class="p">\</span><span class="n">Vulnerable</span> <span class="n">Services</span><span class="p">\</span><span class="n">Service</span> <span class="mf">1</span><span class="p">.</span><span class="n">exe</span>
 </span></span></code></pre></td></tr></table>
 </div>
 </div><p>To exploit a service this way, we need 2 conditions that need to be met:</p>
